@@ -1,6 +1,5 @@
 import { zonedTimeToUtc } from "date-fns-tz";
 import { parse } from "date-fns";
-import { stringify } from "querystring";
 
 export function parseGamesFromTableRows(rows: NodeListOf<Element>) {
   if (!rows) {
@@ -20,12 +19,7 @@ export function parseGamesFromTableRows(rows: NodeListOf<Element>) {
       );
     }
     const timeString = row.children.item(0)?.textContent;
-    const time = timeString
-      ? zonedTimeToUtc(
-          parse(timeString, "yyyy-MM-dd HH:mm", Date.now()),
-          "Europe/Stockholm"
-        )
-      : null;
+    const time = parseTimeString(timeString);
     const facilityColumn = row.children.item(5);
     const facility = facilityColumn?.childNodes.item(0).textContent?.trim();
     const teams = row.children.item(4)?.innerHTML;
@@ -105,6 +99,28 @@ export function parseGamesFromTableRows(rows: NodeListOf<Element>) {
   }
 
   return games;
+}
+
+function parseTimeString(timeString: string | null | undefined) {
+  if (!timeString) {
+    return null;
+  }
+  try {
+    return zonedTimeToUtc(
+      parse(timeString, "yyyy-MM-dd HH:mm", Date.now()),
+      "Europe/Stockholm"
+    );
+  } catch {
+    try {
+      const str = timeString.replace("(Tid ej fastställd)", "12:00").trim();
+      return zonedTimeToUtc(
+        parse(str, "yyyy-MM-dd HH:mm", Date.now()),
+        "Europe/Stockholm"
+      );
+    } catch {
+      return null;
+    }
+  }
 }
 
 function keyForRole(role: string): string {
