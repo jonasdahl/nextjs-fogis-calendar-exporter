@@ -30,7 +30,7 @@ export function createFogisSession() {
       username: string;
       password: string;
     }) => {
-      console.log("Loggin in user:", username);
+      console.log("Logging in user:", username);
       const loginDom = await session
         .get("https://fogis.svenskfotboll.se/Fogisdomarklient/Login/Login.aspx")
         .then((res) => res.dom());
@@ -51,6 +51,24 @@ export function createFogisSession() {
         }
       );
       // TODO Verify login
+    },
+
+    getUserInfo: async () => {
+      const userInfoDom = await session
+        .get(
+          "https://fogis.svenskfotboll.se/Fogisdomarklient/Domare/DomareUppgifter.aspx"
+        )
+        .then((res) => res.dom());
+      return {
+        street: getFieldValue(userInfoDom, "tbAdress"),
+        zip: getFieldValue(userInfoDom, "tbPostnr"),
+        city: getFieldValue(userInfoDom, "tbPostort"),
+        email: getFieldValue(userInfoDom, "tbEpost"),
+        phone: getFieldValue(userInfoDom, "tbTelefon"),
+        phoneWork: getFieldValue(userInfoDom, "tbTelefonArb"),
+        phoneMobile: getFieldValue(userInfoDom, "tbMobil"),
+        note: getFieldValue(userInfoDom, "tbNotering"),
+      };
     },
   };
 }

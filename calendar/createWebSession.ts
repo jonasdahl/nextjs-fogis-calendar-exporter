@@ -1,5 +1,8 @@
 import { CookieJar, JSDOM } from "jsdom";
 import fetch, { RequestInit } from "node-fetch";
+import { QueryClient } from "react-query";
+
+const cacheClient = new QueryClient();
 
 export function createWebSession() {
   const cookieJar = new CookieJar();
@@ -46,6 +49,17 @@ export function createWebSession() {
   return {
     get: (url: string, options?: RequestInit) => {
       return request("GET", url, options);
+    },
+
+    getWithPublicCache: async (url: string, options?: RequestInit) => {
+      const res = await cacheClient.fetchQuery({
+        queryKey: url,
+        queryFn: async () => {
+          return await request("GET", url, options);
+        },
+        staleTime: 1000 * 60 * 60 * 24 * 7,
+      });
+      return res;
     },
 
     post: (

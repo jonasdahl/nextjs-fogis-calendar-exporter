@@ -6,6 +6,7 @@ import { base64Decode } from "../../../utils/base64";
 import { decrypt } from "../../../utils/encryption";
 import { flatten } from "lodash";
 import * as t from "io-ts";
+import { addTransportMetadata } from "../../../transport/transportMetadata";
 
 const queryType = t.type({ index: t.string, token: t.string });
 
@@ -35,13 +36,19 @@ const hello: NextApiHandler = async (req, res) => {
   const fogisSession = createFogisSession();
   await fogisSession.login({ username, password });
   const games = await fogisSession.getGames();
+  const userInfo = await fogisSession.getUserInfo();
+  const gamesWithTransport = await addTransportMetadata({ games, userInfo });
 
   const calendar = iCalendar({
     productId: "-//Matcher i Fogis//Jonas Dahl//SV",
     name: "Matcher i Fogis",
   });
 
-  const events = flatten(games.map((game) => gameToICal(game)));
+  const events = flatten(
+    gamesWithTransport.map(({ game, transport }) =>
+      gameToICal({ game, transport })
+    )
+  );
   calendar.addEvents(events);
 
   res.setHeader("cache-control", `max-age=${60 * 30}`);

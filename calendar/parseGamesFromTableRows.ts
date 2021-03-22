@@ -21,6 +21,26 @@ export function parseGamesFromTableRows(rows: NodeListOf<Element>) {
     const timeString = row.children.item(0)?.textContent;
     const time = parseTimeString(timeString);
     const facilityColumn = row.children.item(5);
+    const facilityGoogleHref =
+      Array.from(facilityColumn?.querySelectorAll("a")!)
+        .find((x) => x.textContent?.toLowerCase().includes("google"))
+        ?.getAttribute("href") ?? null;
+    const facilityBingHref =
+      Array.from(facilityColumn?.querySelectorAll("a")!)
+        .find((x) => x.textContent?.toLowerCase().includes("bing"))
+        ?.getAttribute("href") ?? null;
+    const facilityHittaHref =
+      Array.from(facilityColumn?.querySelectorAll("a")!)
+        .find((x) => x.textContent?.toLowerCase().includes("hitta"))
+        ?.getAttribute("href") ?? null;
+    const googleFacilityCoordinates = facilityGoogleHref?.match(
+      /\?q=(\d+\.\d+),(\d+\.\d+)&/
+    );
+    const latitude = getNumberOrNull(googleFacilityCoordinates?.[1]);
+    const longitude = getNumberOrNull(googleFacilityCoordinates?.[2]);
+    const facilityCoordinates =
+      latitude !== null && longitude !== null ? { latitude, longitude } : null;
+
     const facility = facilityColumn?.childNodes.item(0).textContent?.trim();
     const teams = row.children.item(4)?.innerHTML;
     const teamRegexResult = teams?.match(/^(.*)&nbsp;-&nbsp;(.*)$/);
@@ -81,6 +101,12 @@ export function parseGamesFromTableRows(rows: NodeListOf<Element>) {
       id,
       location: {
         name: facility,
+        position: facilityCoordinates,
+        urls: {
+          bing: facilityBingHref,
+          google: facilityGoogleHref,
+          hitta: facilityHittaHref,
+        },
       },
       homeTeam: {
         name: homeTeamName,
@@ -136,4 +162,21 @@ function keyForRole(role: string): string {
     default:
       throw new Error("Unknown referee role " + role);
   }
+}
+
+function getNumberOrNull(something: unknown) {
+  if (typeof something === "number") {
+    if (isNaN(something)) {
+      return null;
+    }
+    return something;
+  }
+  if (typeof something === "string") {
+    const numVal = Number(something);
+    if (isNaN(numVal)) {
+      return null;
+    }
+    return numVal;
+  }
+  return null;
 }

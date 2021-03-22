@@ -5,7 +5,7 @@ import { TIMESTAMP_FORMAT } from "../constants";
 export function eventToLines(event: Event): string[] {
   const lines: string[] = [];
   lines.push("BEGIN:VEVENT");
-  lines.push(`UID:"${event.uid}"`);
+  lines.push(`UID:${event.uid}`);
   if (event.dataTimestamp !== undefined) {
     lines.push(
       `DTSTAMP:${format(event.dataTimestamp, TIMESTAMP_FORMAT, {
@@ -24,12 +24,12 @@ export function eventToLines(event: Event): string[] {
     })}`
   );
   if (event.location !== undefined) {
-    lines.push(`LOCATION:"${event.location}"`);
+    lines.push(`LOCATION:${event.location}`);
   }
   if (event.description !== undefined) {
-    lines.push(`DESCRIPTION:"${event.description}"`);
+    lines.push(`DESCRIPTION:${event.description}`);
   }
-  lines.push(`SUMMARY:"${event.summary}"`);
+  lines.push(`SUMMARY:${event.summary}`);
   lines.push("END:VEVENT");
   return lines;
 }
