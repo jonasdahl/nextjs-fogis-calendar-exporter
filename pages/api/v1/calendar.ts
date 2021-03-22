@@ -4,6 +4,7 @@ import { gameToICal } from "../../../calendar/helpers/gameToICal";
 import { iCalendar } from "../../../calendar/icalendar";
 import { base64Decode } from "../../../utils/base64";
 import { decrypt } from "../../../utils/encryption";
+import { flatten } from "lodash";
 import * as t from "io-ts";
 
 const queryType = t.type({ index: t.string, token: t.string });
@@ -35,13 +36,12 @@ const hello: NextApiHandler = async (req, res) => {
   await fogisSession.login({ username, password });
   const games = await fogisSession.getGames();
 
-  const events = games.map((game) => gameToICal(game));
-
   const calendar = iCalendar({
     productId: "-//Matcher i Fogis//Jonas Dahl//SV",
     name: "Matcher i Fogis",
   });
 
+  const events = flatten(games.map((game) => gameToICal(game)));
   calendar.addEvents(events);
 
   res.setHeader("cache-control", `max-age=${60 * 30}`);
