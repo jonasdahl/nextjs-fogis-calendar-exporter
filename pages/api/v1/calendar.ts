@@ -1,12 +1,12 @@
+import * as t from "io-ts";
+import { flatten } from "lodash";
 import { NextApiHandler } from "next";
 import { createFogisSession } from "../../../calendar/createFogisSession";
 import { gameToICal } from "../../../calendar/helpers/gameToICal";
 import { iCalendar } from "../../../calendar/icalendar";
+import { addTransportMetadata } from "../../../transport/transportMetadata";
 import { base64Decode } from "../../../utils/base64";
 import { decrypt } from "../../../utils/encryption";
-import { flatten } from "lodash";
-import * as t from "io-ts";
-import { addTransportMetadata } from "../../../transport/transportMetadata";
 
 const queryType = t.type({ index: t.string, token: t.string });
 
@@ -37,10 +37,12 @@ const hello: NextApiHandler = async (req, res) => {
   await fogisSession.login({ username, password });
   const games = await fogisSession.getGames();
   const userInfo = await fogisSession.getUserInfo();
+  console.log({ userInfo });
+
   const gamesWithTransport = await addTransportMetadata({ games, userInfo });
 
   const calendar = iCalendar({
-    productId: "-//Matcher i Fogis//Jonas Dahl//SV",
+    productId: "-//Matcher i Fogis//" + userInfo.email + "//SV",
     name: "Matcher i Fogis",
   });
 

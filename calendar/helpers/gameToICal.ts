@@ -1,4 +1,4 @@
-import { parse, addHours, subMinutes, addMinutes } from "date-fns";
+import { addMinutes, subMinutes } from "date-fns";
 import { Event } from "../icalendar";
 import { parseGamesFromTableRows } from "../parseGamesFromTableRows";
 
@@ -7,11 +7,11 @@ export function gameToICal({
   transport,
 }: {
   game: ReturnType<typeof parseGamesFromTableRows>[number];
-  transport: { duration: { goodEnough: number | null | undefined } };
+  transport: { duration: { goodEnough: number | null | undefined } } | null;
 }): Event[] {
   const travelExtraMinutes = 10;
   const travelLengthMs =
-    transport.duration.goodEnough ?? (60 - travelExtraMinutes) * 60 * 1000;
+    transport?.duration.goodEnough ?? (60 - travelExtraMinutes) * 60 * 1000;
   const travelLengthMinutes = Math.round(
     travelLengthMs / 1000 / 60 + travelExtraMinutes
   );
@@ -49,7 +49,7 @@ export function gameToICal({
   const url = `https://fogis.svenskfotboll.se/Fogisdomarklient/Match/MatchUppgifter.aspx?matchId=${game.id}`;
 
   return [
-    {
+    transport && {
       url,
       uid: game.id + "_travel_to",
       dataTimestamp,
@@ -59,7 +59,7 @@ export function gameToICal({
       location: `Bilen`,
       description,
     },
-    {
+    transport && {
       url,
       uid: game.id + "_pregame",
       dataTimestamp,
@@ -79,7 +79,7 @@ export function gameToICal({
       location: `${game.location?.name}`,
       description,
     },
-    {
+    transport && {
       url,
       uid: game.id + "_postgame",
       dataTimestamp,
@@ -89,7 +89,7 @@ export function gameToICal({
       location: `${game.location?.name}`,
       description,
     },
-    {
+    transport && {
       url,
       uid: game.id + "_travel_from",
       dataTimestamp,
@@ -99,7 +99,9 @@ export function gameToICal({
       location: `Bilen`,
       description,
     },
-  ];
+  ].filter(function <T>(x: T | null): x is T {
+    return !!x;
+  });
 }
 
 function formatReferee(

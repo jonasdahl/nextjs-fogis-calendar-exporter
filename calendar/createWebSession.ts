@@ -13,6 +13,7 @@ export function createWebSession() {
     options?: RequestInit
   ) => {
     console.log("Requesting", method.padEnd(4), url);
+    await new Promise((resolve) => setTimeout(resolve, 500));
 
     const cookieUrl = url;
     const res = await fetch(url, {

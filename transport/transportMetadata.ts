@@ -30,7 +30,7 @@ export async function addTransportMetadata<
 }) {
   const gamesWithTransport: {
     game: typeof games[number];
-    transport: UnwrappedPromise<ReturnType<typeof getTransportMetadata>>;
+    transport: UnwrappedPromise<ReturnType<typeof getTransportMetadata>> | null;
   }[] = [];
 
   for (const game of games) {
@@ -43,7 +43,7 @@ export async function addTransportMetadata<
     const transport = await getTransportMetadata({
       destination,
       origin: `${userInfo.street}, ${userInfo.zip} ${userInfo.city}`,
-    });
+    }).catch((e) => null);
     gamesWithTransport.push({ game, transport });
   }
 
