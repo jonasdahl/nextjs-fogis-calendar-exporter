@@ -21,20 +21,21 @@ export function createWebSession() {
       ...(options ?? {}),
       headers: {
         ...(options ?? {}).headers,
-        cookie: cookieJar.getCookieStringSync(cookieUrl),
+        cookie: await cookieJar.getCookieString(cookieUrl),
       },
     });
     console.log("Response", res.status, "from", method.padEnd(4), url);
     if (!res.ok) {
-      throw new Error(`Failed to fetch: ${res.status} ${res.statusText}`);
-    }
-    const rawHeaders = res.headers.raw();
-
-    const newCookies = rawHeaders?.["set-cookie"];
-    if (newCookies) {
-      newCookies.forEach((cookie) =>
-        cookieJar.setCookieSync(cookie, cookieUrl)
+      throw new Error(
+        `Failed to fetch: ${res.status} ${
+          res.statusText
+        } Location: ${res.headers.get("Location")}`
       );
+    }
+
+    const newCookies = res.headers.get("set-cookie");
+    if (newCookies) {
+      cookieJar.setCookie(newCookies, cookieUrl);
     }
 
     return {

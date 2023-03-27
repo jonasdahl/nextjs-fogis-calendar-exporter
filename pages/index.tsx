@@ -2,22 +2,48 @@ import {
   Box,
   Button,
   Center,
+  Checkbox,
   FormControl,
   FormLabel,
   Input,
+  Tooltip,
   VStack,
 } from "@chakra-ui/react";
-import Head from "next/head";
-import { FormEvent, useState } from "react";
-import { useMutation } from "react-query";
 import * as t from "io-ts";
+import Head from "next/head";
+import { FormEvent, useRef, useState } from "react";
+import { useMutation } from "react-query";
 
 export default function Home() {
-  const { isLoading, mutate, error, data: link, reset } = useMutation(
-    async ({ username, password }: { username: string; password: string }) => {
+  const {
+    isLoading,
+    mutate,
+    error,
+    data: link,
+    reset,
+  } = useMutation(
+    async ({
+      username,
+      password,
+      addTravel,
+      timeAfter,
+      timeBefore,
+    }: {
+      username: string;
+      password: string;
+      addTravel: boolean;
+      timeBefore: number;
+      timeAfter: number;
+    }) => {
       const res = await fetch("/api/v1/generate", {
         method: "POST",
-        body: JSON.stringify({ username, password }),
+        body: JSON.stringify({
+          username,
+          password,
+          addTravel,
+          timeBefore,
+          timeAfter,
+        }),
         headers: { "content-type": "application/json" },
       });
       if (!res.ok) {
@@ -32,7 +58,13 @@ export default function Home() {
     }
   );
 
-  const handleSubmit = (args: { username: string; password: string }) => {
+  const handleSubmit = (args: {
+    username: string;
+    password: string;
+    addTravel: boolean;
+    timeBefore: number;
+    timeAfter: number;
+  }) => {
     mutate(args);
   };
 
@@ -97,14 +129,30 @@ function Form({
   isLoading,
 }: {
   isLoading: boolean;
-  onSubmit: (args: { username: string; password: string }) => void;
+  onSubmit: (args: {
+    username: string;
+    password: string;
+    addTravel: boolean;
+    timeBefore: number;
+    timeAfter: number;
+  }) => void;
 }) {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
+  const [addTravel, setAddTravel] = useState(false);
+
+  const timeBeforeRef = useRef<HTMLInputElement>(null);
+  const timeAfterRef = useRef<HTMLInputElement>(null);
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    onSubmit({ password, username });
+    onSubmit({
+      password,
+      username,
+      addTravel,
+      timeBefore: Number(timeBeforeRef.current?.value) || 0,
+      timeAfter: Number(timeAfterRef.current?.value) || 0,
+    });
   };
 
   return (
@@ -128,6 +176,38 @@ function Form({
             value={password}
             onChange={(e) => setPassword(e.target.value)}
           />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Tid före match (minuter)</FormLabel>
+          <Input
+            ref={timeBeforeRef}
+            name="timeBefore"
+            type="number"
+            defaultValue={0}
+          />
+        </FormControl>
+        <FormControl>
+          <FormLabel>Tid efter match (minuter)</FormLabel>
+          <Input
+            ref={timeAfterRef}
+            name="timeAfter"
+            type="number"
+            defaultValue={0}
+          />
+        </FormControl>
+        <FormControl>
+          <Checkbox
+            checked={addTravel}
+            onChange={(e) => setAddTravel(e.target.checked)}
+          >
+            <Tooltip
+              openDelay={1000}
+              hasArrow
+              label="Om det går att hitta en väg från din adress till matchen kommer den läggas till i kalendern. Avmarkera om det inte fungerar bra."
+            >
+              Försök lägga till bilresor via Google Maps i kalendern
+            </Tooltip>
+          </Checkbox>
         </FormControl>
         <Button type="submit" isLoading={isLoading}>
           Generera ICal-länk

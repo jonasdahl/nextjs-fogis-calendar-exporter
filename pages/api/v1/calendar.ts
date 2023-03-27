@@ -8,7 +8,13 @@ import { addTransportMetadata } from "../../../transport/transportMetadata";
 import { base64Decode } from "../../../utils/base64";
 import { decrypt } from "../../../utils/encryption";
 
-const queryType = t.type({ index: t.string, token: t.string });
+const queryType = t.type({
+  index: t.string,
+  token: t.string,
+  addTravel: t.string,
+  timeAfter: t.string,
+  timeBefore: t.string,
+});
 
 const hello: NextApiHandler = async (req, res) => {
   if (!queryType.is(req.query)) {
@@ -37,18 +43,28 @@ const hello: NextApiHandler = async (req, res) => {
   await fogisSession.login({ username, password });
   const games = await fogisSession.getGames();
   const userInfo = await fogisSession.getUserInfo();
-  console.log({ userInfo });
 
-  const gamesWithTransport = await addTransportMetadata({ games, userInfo });
+  const gamesWithTransport = await addTransportMetadata({
+    games,
+    userInfo,
+    skipTravel: req.query.addTravel === "false",
+  });
 
   const calendar = iCalendar({
-    productId: "-//Matcher i Fogis//" + userInfo.email + "//SV",
+    productId: "-//Matcher i Fogis//Domare//SV",
     name: "Matcher i Fogis",
   });
 
+  console.log(req.query, gamesWithTransport);
+
   const events = flatten(
     gamesWithTransport.map(({ game, transport }) =>
-      gameToICal({ game, transport })
+      gameToICal({
+        game,
+        transport,
+        timeAfter: Number(req.query.timeAfter) || 0,
+        timeBefore: Number(req.query.timeBefore) || 0,
+      })
     )
   );
   calendar.addEvents(events);

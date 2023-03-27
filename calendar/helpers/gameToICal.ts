@@ -5,9 +5,13 @@ import { parseGamesFromTableRows } from "../parseGamesFromTableRows";
 export function gameToICal({
   game,
   transport,
+  timeAfter,
+  timeBefore,
 }: {
   game: ReturnType<typeof parseGamesFromTableRows>[number];
   transport: { duration: { goodEnough: number | null | undefined } } | null;
+  timeAfter: number;
+  timeBefore: number;
 }): Event[] {
   const travelExtraMinutes = 10;
   const travelLengthMs =
@@ -20,13 +24,13 @@ export function gameToICal({
   const gameEnd = addMinutes(game.time, 45 + 45 + 15);
 
   const pregameEnd = gameStart;
-  const pregameStart = subMinutes(pregameEnd, 90);
+  const pregameStart = subMinutes(pregameEnd, timeBefore);
 
   const travelThereEnd = pregameStart;
   const travelThereStart = subMinutes(travelThereEnd, travelLengthMinutes);
 
   const postgameStart = gameEnd;
-  const postgameEnd = addMinutes(postgameStart, 45);
+  const postgameEnd = addMinutes(postgameStart, timeAfter);
 
   const travelBackStart = postgameEnd;
   const travelBackEnd = addMinutes(travelBackStart, travelLengthMinutes);
@@ -59,7 +63,7 @@ export function gameToICal({
       location: `Bilen`,
       description,
     },
-    transport && {
+    {
       url,
       uid: game.id + "_pregame",
       dataTimestamp,
@@ -79,7 +83,7 @@ export function gameToICal({
       location: `${game.location?.name}`,
       description,
     },
-    transport && {
+    {
       url,
       uid: game.id + "_postgame",
       dataTimestamp,
@@ -99,9 +103,11 @@ export function gameToICal({
       location: `Bilen`,
       description,
     },
-  ].filter(function <T>(x: T | null): x is T {
-    return !!x;
-  });
+  ]
+    .filter(function <T>(x: T | null): x is T {
+      return !!x;
+    })
+    .filter((x) => x.endTime.getTime() > x.startTime.getTime() + 60 * 1000);
 }
 
 function formatReferee(

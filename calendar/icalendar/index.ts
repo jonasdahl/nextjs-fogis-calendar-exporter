@@ -1,6 +1,6 @@
 import { CRLF } from "./constants";
-import { splitLongLines } from "./helpers/splitLongLines";
 import { eventToLines } from "./helpers/eventToLines";
+import { splitLongLines } from "./helpers/splitLongLines";
 
 export function iCalendar({
   productId,

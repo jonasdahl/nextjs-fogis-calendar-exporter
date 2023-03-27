@@ -20,6 +20,7 @@ export async function addTransportMetadata<
 >({
   games,
   userInfo,
+  skipTravel,
 }: {
   games: TGame[];
   userInfo: {
@@ -27,6 +28,7 @@ export async function addTransportMetadata<
     zip: string | null | undefined;
     city: string | null | undefined;
   };
+  skipTravel: boolean;
 }) {
   const gamesWithTransport: {
     game: typeof games[number];
@@ -40,10 +42,12 @@ export async function addTransportMetadata<
     if (!destination) {
       throw new Error("No destination (facility) was found for the game");
     }
-    const transport = await getTransportMetadata({
-      destination,
-      origin: `${userInfo.street}, ${userInfo.zip} ${userInfo.city}`,
-    }).catch((e) => null);
+    const transport = skipTravel
+      ? null
+      : await getTransportMetadata({
+          destination,
+          origin: `${userInfo.street}, ${userInfo.zip} ${userInfo.city}`,
+        }).catch((e) => null);
     gamesWithTransport.push({ game, transport });
   }
 
