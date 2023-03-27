@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "dev": "next dev",
-    "build": "NODE_OPTIONS='--openssl-legacy-provider' next build",
+    "build": "next build",
     "start": "next start"
   },
   "dependencies": {
@@ -22,7 +22,7 @@
     "io-ts": "^2.2.16",
     "jsdom": "^16.5.1",
     "lodash": "^4.17.21",
-    "next": "^10.0.8",
+    "next": "^11",
     "node-fetch": "^2.6.1",
     "react": "17.0.1",
     "react-dom": "17.0.1",
