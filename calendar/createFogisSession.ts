@@ -7,6 +7,10 @@ export function createFogisSession() {
 
   return {
     getGames: async () => {
+      await session.cookieJar.setCookie(
+        "Domare_anvandarinstallning=-494996967=False;",
+        "https://fogis.svenskfotboll.se/Fogisdomarklient/Uppdrag/UppdragUppdragLista.aspx"
+      );
       const listDom = await session
         .get(
           "https://fogis.svenskfotboll.se/Fogisdomarklient/Uppdrag/UppdragUppdragLista.aspx",

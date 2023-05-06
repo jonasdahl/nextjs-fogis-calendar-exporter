@@ -49,6 +49,8 @@ export function createWebSession() {
   };
 
   return {
+    cookieJar,
+
     get: (url: string, options?: RequestInit) => {
       return request("GET", url, options);
     },
